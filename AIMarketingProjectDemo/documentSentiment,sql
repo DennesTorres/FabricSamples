@@ -1,0 +1,4 @@
+create view documentSentiment as
+select Id,Sentiment, (PositiveConfidenceScore - NegativeConfidenceScore) as score
+ from AmazonReviewsWithIds
+where Classification='Document level'
