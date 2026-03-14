@@ -1,0 +1,81 @@
+import fabric.functions as fn
+import logging
+from datetime import datetime
+from dateutil.parser import parse
+
+date_str = "2025-06-08"
+
+
+udf = fn.UserDataFunctions()
+
+@udf.connection(argName="sqlDB",alias="contextDB")
+@udf.function()
+def addcomment(sqlDB: fn.FabricSqlConnection,salesday: str, comment: str) -> bool:
+    logging.info('Python UDF trigger function processed a request.')
+
+    dt = parse(salesday)  # parse string to datetime
+    d = dt.date()  # extract the date part only
+
+    data = (d,comment)
+
+    # Insert data into the table
+    insert_query = "INSERT INTO comments (salesdate,explanation) VALUES (?, ?);"
+
+    # Establish a connection to the SQL database
+    connection = sqlDB.connect()
+    cursor = connection.cursor()
+    cursor.execute(insert_query, data)
+
+    # Commit the transaction
+    connection.commit()
+
+    # Close the connection
+    cursor.close()
+    connection.close()  
+
+    return True
+
+
+
+# Select 'Manage connections' and add a connection to a Fabric SQL Database 
+# Replace the alias "<alias for sql database>" with your connection alias.
+@udf.connection(argName="sqlDB",alias="contextDB")
+@udf.function()
+def clearComments(sqlDB: fn.FabricSqlConnection, salesdate: str) -> str:
+
+    '''
+    Description: Insert one employee record into SQL database, creating table if needed.
+    
+    Args:
+        sqlDB (fn.FabricSqlConnection): Fabric SQL database connection.
+        employeeId (int): Employee ID (primary key).
+        employeeName (str): Employee name.
+        deptId (int): Department ID.
+    
+    Returns:
+        str: Confirmation message about table creation and data insertion.
+        
+    '''
+
+    # Replace with the data you want to insert
+    dt = parse(salesdate)  # parse string to datetime
+    d = dt.date()  # extract the date part only
+
+    # Replace with the data you want to insert
+    data = (d)
+
+    # Establish a connection to the SQL database
+    connection = sqlDB.connect()
+    cursor = connection.cursor()
+  
+    # Insert data into the table
+    insert_query = "delete comments where salesdate= cast(? as date) ;"
+    cursor.execute(insert_query, data)
+
+    # Commit the transaction
+    connection.commit()
+
+    # Close the connection
+    cursor.close()
+    connection.close()               
+    return "Comments Removed"
